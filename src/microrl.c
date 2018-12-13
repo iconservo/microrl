@@ -190,6 +190,27 @@ static int split (microrl_t * pThis, int limit, char const ** tkn_arr)
 {
 	int i = 0;
 	int ind = 0;
+
+	int ignore_whitespace = False;
+
+	while (ind < limit) {
+		if ((pThis->cmdline [ind] == '"') && (!ignore_whitespace)) {
+			ignore_whitespace = True;
+			memcpy(&pThis->cmdline[ind], &pThis->cmdline[ind+1], pThis->cmdlen-ind+1);
+		}
+		else if ((pThis->cmdline [ind] == '"') && (ignore_whitespace)) {
+			ignore_whitespace = False;
+			memcpy(&pThis->cmdline[ind], &pThis->cmdline[ind+1], pThis->cmdlen-ind+1);
+		}
+
+		if ((pThis->cmdline [ind] == '\0') && (ignore_whitespace)) {
+			pThis->cmdline [ind] = ' ';
+		}
+
+		ind++;
+	}
+		
+	ind = 0;
 	while (1) {
 		// go to the first whitespace (zerro for us)
 		while ((pThis->cmdline [ind] == '\0') && (ind < limit)) {
@@ -297,22 +318,29 @@ static void terminal_reset_cursor (microrl_t * pThis)
 }
 
 //*****************************************************************************
+// set echo mode (true/false), using for disabling echo
+void microrl_echo_en(microrl_t * pThis, int mode)
+{
+	pThis->enable_echo = mode;
+}
+
+//*****************************************************************************
 // print cmdline to screen, replace '\0' to wihitespace 
 static void terminal_print_line (microrl_t * pThis, int pos, int cursor)
 {
-    pThis->print (pThis->extra, "\033[K");    // delete all from cursor to end
+		pThis->print (pThis->extra, "\033[K");    // delete all from cursor to end
 
-	char nch [] = {0,0};
-	int i;
-	for (i = pos; i < pThis->cmdlen; i++) {
-		nch [0] = pThis->cmdline [i];
-		if (nch[0] == '\0')
-			nch[0] = ' ';
-        pThis->print (pThis->extra,nch);
-	}
-	
-	terminal_reset_cursor (pThis);
-	terminal_move_cursor (pThis, cursor);
+		char nch [] = {0,0};
+		int i;
+		for (i = pos; i < pThis->cmdlen; i++) {
+			nch [0] = pThis->cmdline [i];
+			if (nch[0] == '\0')
+				nch[0] = ' ';
+			pThis->print (pThis->extra,nch);
+		}
+		
+		terminal_reset_cursor (pThis);
+		terminal_move_cursor (pThis, cursor);
 }
 
 //*****************************************************************************
@@ -441,12 +469,15 @@ static int escape_process (microrl_t * pThis, char ch)
 static int microrl_insert_text (microrl_t * pThis, char * text, int len)
 {
 	int i;
+	
 	if (pThis->cmdlen + len < _COMMAND_LINE_LEN) {
 		memmove (pThis->cmdline + pThis->cursor + len,
 						 pThis->cmdline + pThis->cursor,
 						 pThis->cmdlen - pThis->cursor);
 		for (i = 0; i < len; i++) {
+
 			pThis->cmdline [pThis->cursor + i] = text [i];
+			
 			if (pThis->cmdline [pThis->cursor + i] == ' ') {
 				pThis->cmdline [pThis->cursor + i] = 0;
 			}
@@ -699,9 +730,11 @@ void microrl_insert_char (microrl_t * pThis, int ch)
 			default:
 			if (((ch == ' ') && (pThis->cmdlen == 0)) || IS_CONTROL_CHAR(ch))
 				break;
-			if (microrl_insert_text (pThis, (char*)&ch, 1))
-				terminal_print_line (pThis, pThis->cursor-1, pThis->cursor);
-			
+			if (microrl_insert_text (pThis, (char*)&ch, 1)) {
+				if(pThis->enable_echo)
+					terminal_print_line (pThis, pThis->cursor-1, pThis->cursor);
+			}
+				 		
 			break;
 		}
 #ifdef _USE_ESC_SEQ
