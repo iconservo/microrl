@@ -234,7 +234,7 @@ static int split (microrl_t * pThis, int limit, char const ** tkn_arr)
 //*****************************************************************************
 inline static void print_prompt (microrl_t * pThis)
 {
-    pThis->print ( pThis->extra, pThis->prompt_str);
+	pThis->print ( pThis->extra, pThis->prompt_str);
 }
 
 //*****************************************************************************
@@ -469,7 +469,6 @@ static int escape_process (microrl_t * pThis, char ch)
 static int microrl_insert_text (microrl_t * pThis, char * text, int len)
 {
 	int i;
-	
 	if (pThis->cmdlen + len < _COMMAND_LINE_LEN) {
 		memmove (pThis->cmdline + pThis->cursor + len,
 						 pThis->cmdline + pThis->cursor,
@@ -581,9 +580,9 @@ static void microrl_get_complite (microrl_t * pThis)
 //*****************************************************************************
 void new_line_handler(microrl_t * pThis){
 	char const * tkn_arr [_COMMAND_TOKEN_NMB];
-	int status;
-
+	int status;	
 	terminal_newline (pThis);
+
 #ifdef _USE_HISTORY
 	if (pThis->cmdlen > 0)
 		hist_save_line (&pThis->ring_hist, pThis->cmdline, pThis->cmdlen);
@@ -596,6 +595,7 @@ void new_line_handler(microrl_t * pThis){
 	}
 	if ((status > 0) && (pThis->execute != NULL))
         pThis->execute ( pThis->extra, status, tkn_arr);
+	
 	print_prompt (pThis);
 	pThis->cmdlen = 0;
 	pThis->cursor = 0;
