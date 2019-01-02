@@ -125,7 +125,7 @@ void microrl_set_sigint_callback (microrl_t * pThis, void (*sigintf)(void *));
 void microrl_insert_char (microrl_t * pThis, int ch);
 
 // change prompt, calls once at start up
-void microrl_set_prompt( microrl_t * pThis, char *prompt, int promptlen );
+void microrl_set_prompt( microrl_t * pThis, const char *prompt, int promptlen );
 
 #ifdef __cplusplus
 }

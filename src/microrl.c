@@ -370,7 +370,7 @@ void microrl_init (microrl_t * pThis, void (*print) (void *,const char *), void 
 }
 
 // change prompt, calls once at start up
-void microrl_set_prompt( microrl_t * pThis, char *prompt, int promptlen )
+void microrl_set_prompt( microrl_t * pThis, const char *prompt, int promptlen )
 {
     pThis->prompt_str = prompt;
     pThis->prompt_len = promptlen;
